@@ -10,7 +10,7 @@ public class Conversation {
     private int id;
     private String callingPhone;
     private String takingPhone;
-    private int callTypeId;
+    private CallType callType;
     private Duration duration;
     private LocalDateTime dateTime;
 
@@ -19,12 +19,12 @@ public class Conversation {
     public Conversation
         (
             int id, String callingPhone, String takingPhone,
-            int callTypeId, Duration duration, LocalDateTime dateTime
+            CallType callType, Duration duration, LocalDateTime dateTime
         ) {
         this.id = id;
         this.callingPhone = callingPhone;
         this.takingPhone = takingPhone;
-        this.callTypeId = callTypeId;
+        this.callType = callType;
         this.duration = duration;
         this.dateTime = dateTime;
     }
@@ -53,12 +53,12 @@ public class Conversation {
         this.takingPhone = takingPhone;
     }
 
-    public int getCallTypeId() {
-        return callTypeId;
+    public CallType getCallType() {
+        return callType;
     }
 
-    public void setCallTypeId(int callTypeId) {
-        this.callTypeId = callTypeId;
+    public void setCallType(CallType callType) {
+        this.callType = callType;
     }
 
     public Duration getDuration() {

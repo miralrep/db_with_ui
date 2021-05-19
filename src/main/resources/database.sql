@@ -27,7 +27,7 @@ CREATE TABLE subscriber_privilege
 
 );
 -------------------------------------------------------------
---category
+--categoryId
 --id|name|subscription_fee
 CREATE TABLE IF NOT EXISTS category
 (
