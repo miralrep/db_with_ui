@@ -1,5 +1,11 @@
 package ru.miral.dbwithui.ui;
 
+import jdk.jshell.spi.ExecutionControl;
+import ru.miral.dbwithui.dao.Repository;
+import ru.miral.dbwithui.model.entities.Category;
+import ru.miral.dbwithui.model.entities.Privilege;
+import ru.miral.dbwithui.model.entities.Subscriber;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -14,33 +20,41 @@ import java.util.Set;
 public class MainForm extends JFrame {
     private final int MAIN_MENU_WIDTH = 250;
     private final int MAIN_MENU_HEIGHT = 300;
-    private final int ADD_MENU_WIDTH = 600;
-    private final int ADD_MENU_HEIGHT = 300;
+    private final int ADD_MENU_WIDTH = 400;
+    private final int ADD_MENU_HEIGHT = 400;
+
+    Repository repository;
+
     public MainForm() {
         super("Главное меню");
-
+        repository = new Repository();
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        Container container = this.getContentPane();
-        container.setLayout(new GridLayout(3, 2, 2, 2));
+        getContentPane().setLayout(new FlowLayout());
 
         showMainMenu();
     }
 
     void showMainMenu() {
 
-        setSizeAndCenter(250,300);
+        setSizeAndCenter(250, 300);
         getContentPane().removeAll();
 
         JButton addSubscriber = new JButton("Добавить абонента");
         JButton addCategory = new JButton("Добавить тариф");
         JButton addPhoneNumber = new JButton("Добавить телефон");
         JButton addConversation = new JButton("Добавить звонок");
+        add(addConversation);
+        add(addCategory);
+        add(addPhoneNumber);
+        add(addSubscriber);
 
-        getContentPane().add(addConversation);
-        getContentPane().add(addCategory);
-        getContentPane().add(addPhoneNumber);
-        getContentPane().add(addSubscriber);
+        JTextField telephoneField = new JTextField(20);
+        JLabel telephoneLabel = new JLabel("Номер телефона");
+        JButton reportButton = new JButton("Составить отчет");
+        add(telephoneLabel);
+        add(telephoneField);
+        add(reportButton);
 
         addConversation.addActionListener(new ActionListener() {
             @Override
@@ -67,17 +81,50 @@ public class MainForm extends JFrame {
             }
         });
 
+        reportButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    throw new ExecutionControl.NotImplementedException("Создание отчета");
+                } catch (ExecutionControl.NotImplementedException notImplementedException) {
+                    notImplementedException.printStackTrace();
+                }
+            }
+        });
+
         getContentPane().repaint();
     }
 
     private void showAddSubscriberMenu() {
         initAddMenu("Добавить абонента");
+        JTextField surnameField = new JTextField(30);
+        add(surnameField);
+        JTextField nameField = new JTextField(30);
+        add(nameField);
+        JTextField patronymicField = new JTextField(30);
+        add(patronymicField);
+        JTextField addressField = new JTextField(30);
+        add(addressField);
+        JComboBox<Privilege> privilegesComboBox = new JComboBox<>(Privilege.values());
+        add(privilegesComboBox);
+
+        JButton submit = new JButton("Добавить");
+        submit.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                /*repository.saveSubscriber();*/
+            }
+        });
+        add(submit);
 
         getContentPane().repaint();
     }
 
     private void showAddPhoneNumberMenu() {
         initAddMenu("Добавить телефон");
+        JTextField telephoneField = new JTextField(20);
+        JComboBox<Subscriber> subscribersComboBox = new JComboBox<>();//TODO подтянуть абонентов
+        JComboBox<Category> categoryComboBox = new JComboBox<>();//TODO подтянуть тарифы
 
         getContentPane().repaint();
     }
@@ -90,21 +137,24 @@ public class MainForm extends JFrame {
 
     private void showAddConversationMenu() {
         initAddMenu("Добавить звонок");
+
         getContentPane().repaint();
     }
-    private void setSizeAndCenter(int width, int height){
-        Dimension dim= Toolkit.getDefaultToolkit().getScreenSize();
+
+    private void setSizeAndCenter(int width, int height) {
+        Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
         this.setSize(width, height);
-        this.setLocation(dim.width/2-this.getSize().width/2, dim.height/2-this.getSize().height/2);
+        this.setLocation(dim.width / 2 - this.getSize().width / 2, dim.height / 2 - this.getSize().height / 2);
     }
 
-    private void initAddMenu(String name){
+    private void initAddMenu(String name) {
         setSizeAndCenter(ADD_MENU_WIDTH, ADD_MENU_HEIGHT);
         this.setTitle(name);
         getContentPane().removeAll();
+        addBackButton();
     }
 
-    private JButton backButton(){
+    private void addBackButton() {
         JButton backButton = new JButton("Назад");
         backButton.addActionListener(new ActionListener() {
             @Override
@@ -112,7 +162,10 @@ public class MainForm extends JFrame {
                 showMainMenu();
             }
         });
-        return backButton;
+        add(backButton);
     }
 
+    private void add(JComponent component) {
+        getContentPane().add(component);
+    }
 }

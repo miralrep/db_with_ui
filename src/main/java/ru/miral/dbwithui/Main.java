@@ -1,6 +1,8 @@
 package ru.miral.dbwithui;
 
 import ru.miral.dbwithui.dao.Repository;
+import ru.miral.dbwithui.model.entities.Conversation;
+import ru.miral.dbwithui.model.entities.PhoneNumber;
 import ru.miral.dbwithui.ui.MainForm;
 
 /**
@@ -10,6 +12,7 @@ public class Main {
     public static void main(String[] args) {
         MainForm mainForm = new MainForm();
         mainForm.setVisible(true);
+
     }
 }
 
