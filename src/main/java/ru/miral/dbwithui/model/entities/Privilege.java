@@ -23,6 +23,14 @@ public enum Privilege {
         return name;
     }
 
+    public static Privilege getPrivilegeByName(String name) throws Exception {
+        for(Privilege privilege: Privilege.values()){
+            if(privilege.name.equals(name))
+                return privilege;
+        }
+        throw new Exception("Нет льгот с таким названием");
+    }
+
     public String getName() {
         return name;
     }

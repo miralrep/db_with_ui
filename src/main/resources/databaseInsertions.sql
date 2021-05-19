@@ -33,3 +33,5 @@ VALUES (2, 2);
 
 INSERT INTO subscriber_privilege
 VALUES (2, 3);
+
+--------------------------

@@ -5,7 +5,7 @@ import java.util.Set;
 /**
  * todo Document type Subscriber
  */
-public class Subscriber{
+public class Subscriber {
     private int id;
     private String surname;
     private String name;
@@ -14,12 +14,13 @@ public class Subscriber{
 
     private Set<Privilege> privileges;
 
-    public Subscriber(){}
+    public Subscriber() {
+    }
 
     public Subscriber
         (
-        int id, String surname, String name, String patronymic,
-        String address, Set<Privilege> privileges
+            int id, String surname, String name, String patronymic,
+            String address, Set<Privilege> privileges
         ) {
         this.id = id;
         this.surname = surname;
@@ -75,6 +76,10 @@ public class Subscriber{
 
     public void setPrivileges(Set<Privilege> privileges) {
         this.privileges = privileges;
+    }
+
+    public void addPrivilege(Privilege privilege) {
+        this.privileges.add(privilege);
     }
 
     @Override

@@ -8,6 +8,8 @@ public enum CallType {
     INTERCITY("Междугородний"),
     INTERNATIONAL("Международный");
 
+
+
     final private String name;
     CallType(String name){
         this.name = name;
@@ -15,6 +17,10 @@ public enum CallType {
 
     @Override
     public String toString() {
-        return  name;
+        return name;
+    }
+
+    public String getName() {
+        return name;
     }
 }
