@@ -9,6 +9,7 @@ public class PhoneNumber {
     private Category categoryId; //тариф
 
     public PhoneNumber(){}
+
     public PhoneNumber(String number, Subscriber subscriber, Category categoryId) {
         this.number = number;
         this.subscriber = subscriber;
@@ -37,5 +38,10 @@ public class PhoneNumber {
 
     public void setCategory(Category categoryId) {
         this.categoryId = categoryId;
+    }
+
+    @Override
+    public String toString() {
+        return number;
     }
 }

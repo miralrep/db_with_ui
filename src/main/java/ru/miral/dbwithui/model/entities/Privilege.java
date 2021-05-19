@@ -5,6 +5,7 @@ package ru.miral.dbwithui.model.entities;
  */
 public enum Privilege {
 
+    NONE("", 0.00d),
     DISABILITY("Инвалидность", 5.00d),
     MANY_CHILDREN("Многодетность", 2.00d),
     WAR_VETERAN("Ветеран войны", 7.00d);
@@ -15,6 +16,11 @@ public enum Privilege {
         this.name = name;
         discount = Math.floor(discount*100)/100;
         this.discount = discount;
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 
     public String getName() {

@@ -8,8 +8,8 @@ import java.time.LocalDateTime;
  */
 public class Conversation {
     private int id;
-    private String callingPhone;
-    private String takingPhone;
+    private PhoneNumber callingPhone;
+    private PhoneNumber takingPhone;
     private CallType callType;
     private Duration duration;
     private LocalDateTime dateTime;
@@ -18,7 +18,7 @@ public class Conversation {
 
     public Conversation
         (
-            int id, String callingPhone, String takingPhone,
+            int id, PhoneNumber callingPhone, PhoneNumber takingPhone,
             CallType callType, Duration duration, LocalDateTime dateTime
         ) {
         this.id = id;
@@ -37,19 +37,19 @@ public class Conversation {
         this.id = id;
     }
 
-    public String getCallingPhone() {
+    public PhoneNumber getCallingPhone() {
         return callingPhone;
     }
 
-    public void setCallingPhone(String callingPhone) {
+    public void setCallingPhone(PhoneNumber callingPhone) {
         this.callingPhone = callingPhone;
     }
 
-    public String getTakingPhone() {
+    public PhoneNumber getTakingPhone() {
         return takingPhone;
     }
 
-    public void setTakingPhone(String takingPhone) {
+    public void setTakingPhone(PhoneNumber takingPhone) {
         this.takingPhone = takingPhone;
     }
 
@@ -75,5 +75,10 @@ public class Conversation {
 
     public void setDateTime(LocalDateTime dateTime) {
         this.dateTime = dateTime;
+    }
+
+    @Override
+    public String toString() {
+        return id + " " + callingPhone + " " + takingPhone;
     }
 }

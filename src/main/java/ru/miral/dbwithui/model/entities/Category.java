@@ -56,6 +56,11 @@ public class Category {
     public void setFees(Map<CallType, Double> fees) {
         this.fees = fees;
     }
+
+    @Override
+    public String toString() {
+        return name;
+    }
 }
 
 

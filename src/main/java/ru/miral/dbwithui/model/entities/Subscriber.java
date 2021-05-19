@@ -76,4 +76,9 @@ public class Subscriber{
     public void setPrivileges(Set<Privilege> privileges) {
         this.privileges = privileges;
     }
+
+    @Override
+    public String toString() {
+        return id + ": " + surname + " " + name + " " + patronymic;
+    }
 }

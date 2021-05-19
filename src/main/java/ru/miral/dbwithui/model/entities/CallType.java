@@ -12,4 +12,9 @@ public enum CallType {
     CallType(String name){
         this.name = name;
     }
+
+    @Override
+    public String toString() {
+        return  name;
+    }
 }
