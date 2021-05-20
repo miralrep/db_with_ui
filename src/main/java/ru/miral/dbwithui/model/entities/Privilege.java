@@ -5,7 +5,7 @@ package ru.miral.dbwithui.model.entities;
  */
 public enum Privilege {
 
-    NONE("", 0.00d),
+    NONE(" ", 0.00d),
     DISABILITY("Инвалидность", 5.00d),
     MANY_CHILDREN("Многодетность", 2.00d),
     WAR_VETERAN("Ветеран войны", 7.00d);

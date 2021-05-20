@@ -3,6 +3,7 @@ package ru.miral.dbwithui.ui;
 import jdk.jshell.spi.ExecutionControl;
 import ru.miral.dbwithui.dao.Repository;
 import ru.miral.dbwithui.model.entities.Category;
+import ru.miral.dbwithui.model.entities.PhoneNumber;
 import ru.miral.dbwithui.model.entities.Privilege;
 import ru.miral.dbwithui.model.entities.Subscriber;
 
@@ -11,10 +12,9 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
+import java.sql.Array;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * todo Document type MainForm
@@ -58,10 +58,10 @@ public class MainForm extends JFrame {
         //JButton addCategory = new JButton("Добавить тариф");
         JButton addPhoneNumber = new JButton("Добавить телефон");
         JButton addConversation = new JButton("Добавить звонок");
-        add(addConversation);
+        add(addSubscriber);
         //add(addCategory);
         add(addPhoneNumber);
-        add(addSubscriber);
+        add(addConversation);
 
         JTextField telephoneField = new JTextField(20);
         JLabel telephoneLabel = new JLabel("Номер телефона");
@@ -138,7 +138,7 @@ public class MainForm extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 String surname = surnameField.getText();
                 String name = nameField.getText();
-                String patronymic = surnameField.getText();
+                String patronymic = patronymicField.getText();
                 String address = surnameField.getText();
                 Set<Privilege> privileges = new HashSet<>(privilegesList.getSelectedValuesList());
                 addNewSubscriber(surname, name, patronymic, address, privileges);
@@ -151,11 +151,34 @@ public class MainForm extends JFrame {
 
     private void showAddPhoneNumberMenu() {
         initAddMenu("Добавить телефон");
+        JLabel telephoneLabel = new JLabel("Телефон");
         JTextField telephoneField = new JTextField(20);
-        JComboBox<Subscriber> subscribersComboBox = new JComboBox<>();//TODO подтянуть абонентов
-        JComboBox<Category> categoryComboBox = new JComboBox<>();//TODO подтянуть тарифы
+        JComboBox<Subscriber> subscribersComboBox = new JComboBox<>();
+        repository.getAllSubscribers().forEach(subscribersComboBox::addItem);
+        JComboBox<Category> categoryComboBox = new JComboBox<>();
+        repository.getAllCategories().forEach(categoryComboBox::addItem);
+        JButton submit = new JButton("Добавить");
+
+        add(telephoneLabel);
+        add(telephoneField);
+        add(subscribersComboBox);
+        add(categoryComboBox);
+        add(submit);
 
         getContentPane().repaint();
+
+        submit.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String number = telephoneField.getText();
+                Subscriber subscriber = (Subscriber) subscribersComboBox.getSelectedItem();
+                Category category = (Category) categoryComboBox.getSelectedItem();
+                PhoneNumber phoneNumber = new PhoneNumber(
+                    number, category
+                );
+                repository.savePhoneNumber(phoneNumber, subscriber);
+            }
+        });
     }
 
     private void showAddCategoryMenu() {
@@ -205,7 +228,7 @@ public class MainForm extends JFrame {
         String name, String surname, String patronymic,
         String address, Set<Privilege> privileges){
         Subscriber subscriber = new Subscriber(
-            -1, name, surname, patronymic, address, privileges, null
+            -1, surname, name, patronymic, address, privileges, null
         );
         repository.saveSubscriber(subscriber);
     }

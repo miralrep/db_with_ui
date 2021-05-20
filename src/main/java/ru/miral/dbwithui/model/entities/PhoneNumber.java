@@ -9,9 +9,9 @@ public class PhoneNumber {
 
     public PhoneNumber(){}
 
-    public PhoneNumber(String number, Category categoryId) {
+    public PhoneNumber(String number, Category category) {
         this.number = number;
-        this.categoryId = categoryId;
+        this.categoryId = category;
     }
 
     public String getNumber() {

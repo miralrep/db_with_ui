@@ -145,6 +145,57 @@ public class Repository {
 
     //public Set<Conversation> get
 
+    public Set<Category> getAllCategories() {
+        Set<Category> allCategories = new HashSet<>();
+        try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
+             Statement statement = connection.createStatement()) {
+            ResultSet resultAllCategories = statement.executeQuery("" +
+                "SELECT id, name, subscription_fee FROM category");
+
+            while (resultAllCategories.next()) {
+                Category category = new Category();
+                category.setId(resultAllCategories.getInt("id"));
+                category.setName(resultAllCategories.getString("name"));
+                category.setSubscriptionFee(resultAllCategories.getDouble("subscription_fee"));
+                try (PreparedStatement preparedStatement = connection.prepareStatement("" +
+                    "SELECT fee FROM category_call_type_fee WHERE call_type_id = ? AND category_id = ?")) {
+                    preparedStatement.setInt(2, category.getId());
+                    category.setFees(new HashMap<>());
+                    for (CallType callType : CallType.values()) {
+                        preparedStatement.setInt(1, getCallTypeId(callType));
+                        ResultSet resultSetFee = preparedStatement.executeQuery();
+                        if (resultSetFee.next()) {
+                            category.setFeeByCallType(callType.getName(), resultSetFee.getDouble("fee"));
+                        }
+                    }
+                }
+                allCategories.add(category);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return allCategories;
+    }
+
+    /*public Set<CallType> getAllCallTypes(){
+        Set<CallType> allCallTypes = new HashSet<>();
+        try(Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
+            Statement statement = connection.createStatement()){
+            ResultSet resultSet = statement.executeQuery("" +
+                "SELECT id, name FROM call_type");
+
+            while (resultSet.next()){
+                CallType callType = new Category();
+                category.setId(resultSet.getInt("id"));
+                category.setName(resultSet.getString("name"));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return allCallTypes;
+    }*/
+
     public Category getCategoryById(int id) {
         try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD)) {
             try (PreparedStatement preparedStatement = connection
@@ -213,7 +264,7 @@ public class Repository {
     }
 
     public Map<CallType, Double> getCategoryCallTypeFees(Category category) {
-        Map<CallType,Double> categoryCallTypeFees = new HashMap<>();
+        Map<CallType, Double> categoryCallTypeFees = new HashMap<>();
         try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
              PreparedStatement categoryCallTypeFeesStatement = connection.prepareStatement("" +
                  "SELECT ct.name, cctf.fee FROM category_call_type_fee cctf " +
@@ -276,6 +327,13 @@ public class Repository {
             saveSubscriberStatement.setString(3, subscriber.getPatronymic());
             saveSubscriberStatement.setString(4, subscriber.getAddress());
             saveSubscriberStatement.executeUpdate();
+            try (Statement getMaxIdStatement = connection.createStatement()) {
+                ResultSet resultSet = getMaxIdStatement.executeQuery("SELECT MAX(id) FROM subscriber");
+                if (resultSet.next()) {
+                    subscriber.setId(resultSet.getInt("max"));
+                    saveSubscriberPrivileges(subscriber);
+                }
+            }
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -289,7 +347,8 @@ public class Repository {
         ) {
             for (Privilege privilege : subscriber.getPrivileges()) {
                 saveSubscriberPrivileges.setInt(1, subscriber.getId());
-                saveSubscriberPrivileges.setInt(1, getPrivilegeId(privilege));
+                saveSubscriberPrivileges.setInt(2, getPrivilegeId(privilege));
+                saveSubscriberPrivileges.executeUpdate();
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -333,6 +392,22 @@ public class Repository {
         }
     }
 
+    public void savePhoneNumber(PhoneNumber phoneNumber, Subscriber subscriber) {
+        try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);) {
+            try(PreparedStatement savePhoneStatement = connection.prepareStatement("" +
+                "INSERT INTO phone_number(number, subscriber_id, category_id) " +
+                "VALUES (?, ?, ?)")){
+                savePhoneStatement.setString(1,phoneNumber.getNumber());
+                savePhoneStatement.setInt(2, subscriber.getId());
+                savePhoneStatement.setInt(3, phoneNumber.getCategory().getId());
+
+                savePhoneStatement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void initPrivileges() {
         try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
              PreparedStatement insertPrivilege = connection
@@ -364,7 +439,7 @@ public class Repository {
     private void initCategory() {
         saveCategory(new Category(
             0,
-            "Стандартный",
+            "Стандарт",
             0.00d,
             new HashMap<CallType, Double>() {{
                 put(CallType.LOCAL, 5.00d);
