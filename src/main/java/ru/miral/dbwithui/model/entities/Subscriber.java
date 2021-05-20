@@ -13,6 +13,7 @@ public class Subscriber {
     private String address;
 
     private Set<Privilege> privileges;
+    private Set<PhoneNumber> phoneNumbers;
 
     public Subscriber() {
     }
@@ -20,7 +21,7 @@ public class Subscriber {
     public Subscriber
         (
             int id, String surname, String name, String patronymic,
-            String address, Set<Privilege> privileges
+            String address, Set<Privilege> privileges, Set<PhoneNumber> phoneNumbers
         ) {
         this.id = id;
         this.surname = surname;
@@ -28,6 +29,7 @@ public class Subscriber {
         this.patronymic = patronymic;
         this.address = address;
         this.privileges = privileges;
+        this.phoneNumbers = phoneNumbers;
     }
 
     public int getId() {
@@ -80,6 +82,18 @@ public class Subscriber {
 
     public void addPrivilege(Privilege privilege) {
         this.privileges.add(privilege);
+    }
+
+    public Set<PhoneNumber> getPhoneNumbers() {
+        return phoneNumbers;
+    }
+
+    public void setPhoneNumbers(Set<PhoneNumber> phoneNumbers) {
+        this.phoneNumbers = phoneNumbers;
+    }
+
+    public void addPhoneNumber(PhoneNumber phoneNumber) {
+        this.phoneNumbers.add(phoneNumber);
     }
 
     @Override
