@@ -30,6 +30,7 @@ public class MainForm extends JFrame {
     public MainForm() {
         super("Главное меню");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.setResizable(false);
         try {
             repository = new Repository();
         } catch (ClassNotFoundException e) {
@@ -159,9 +160,9 @@ public class MainForm extends JFrame {
         this.setLocation(dim.width / 2 - this.getSize().width / 2, dim.height / 2 - this.getSize().height / 2);
     }
 
-    private void initAddMenu(String name) {
+    private void initAddMenu(String title) {
         setSizeAndCenter(ADD_MENU_WIDTH, ADD_MENU_HEIGHT);
-        this.setTitle(name);
+        this.setTitle(title);
         getContentPane().removeAll();
         addBackButton();
     }
