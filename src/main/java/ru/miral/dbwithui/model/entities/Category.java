@@ -1,6 +1,5 @@
 package ru.miral.dbwithui.model.entities;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -9,10 +8,10 @@ import java.util.Map;
 public class Category {
     private int id;
     private String name;
-    private int subscriptionFee;
+    private double subscriptionFee;
     Map<CallType, Double> fees;
 
-    Category(){}
+    public Category(){}
 
     public Category(int id, String name, int subscriptionFee, Map<CallType, Double> fees) {
         this.id = id;
@@ -37,11 +36,11 @@ public class Category {
         this.name = name;
     }
 
-    public int getSubscriptionFee() {
+    public double getSubscriptionFee() {
         return subscriptionFee;
     }
 
-    public void setSubscriptionFee(int subscriptionFee) {
+    public void setSubscriptionFee(double subscriptionFee) {
         this.subscriptionFee = subscriptionFee;
     }
 
@@ -51,6 +50,14 @@ public class Category {
 
     public double getFeeByCallType(CallType callType){
         return fees.get(callType);
+    }
+
+    public void setFeeByCallType(String callType, double fee) {
+        try {
+            fees.put(CallType.getCallTypeByName(callType), fee);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void setFees(Map<CallType, Double> fees) {

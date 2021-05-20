@@ -15,6 +15,14 @@ public enum CallType {
         this.name = name;
     }
 
+    public static CallType getCallTypeByName(String name) throws Exception {
+        for(CallType callType: CallType.values()){
+            if(callType.name.equals(name))
+                return callType;
+        }
+        throw new Exception("Нет льгот с таким названием");
+    }
+
     @Override
     public String toString() {
         return name;

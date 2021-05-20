@@ -11,6 +11,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -33,6 +34,10 @@ public class MainForm extends JFrame {
             repository = new Repository();
         } catch (ClassNotFoundException e) {
             JOptionPane.showMessageDialog(getContentPane(), "Не найден драйвер БД!");
+            this.dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
+            e.printStackTrace();
+        } catch (SQLException e){
+            JOptionPane.showMessageDialog(getContentPane(), "Не удалось подключиться к БД");
             this.dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
             e.printStackTrace();
         }
