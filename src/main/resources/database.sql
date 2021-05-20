@@ -82,6 +82,8 @@ CREATE TABLE IF NOT EXISTS conversation
     duration        TIMESTAMP NOT NULL,
     date            INTERVAL NOT NULL,
 
-    FOREIGN KEY(call_type_id) references call_type(id)
+    FOREIGN KEY(call_type_id) references call_type(id),
+    FOREIGN KEY(calling_phone) references phone_number(number),
+    FOREIGN KEY(taking_phone) references phone_number(number)
 );
 -------------------------------------------------------------
