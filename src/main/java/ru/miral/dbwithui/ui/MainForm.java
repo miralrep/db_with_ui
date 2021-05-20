@@ -10,6 +10,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -27,8 +28,14 @@ public class MainForm extends JFrame {
 
     public MainForm() {
         super("Главное меню");
-        repository = new Repository();
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        try {
+            repository = new Repository();
+        } catch (ClassNotFoundException e) {
+            JOptionPane.showMessageDialog(getContentPane(), "Не найден драйвер БД!");
+            this.dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
+            e.printStackTrace();
+        }
 
         getContentPane().setLayout(new FlowLayout());
 
