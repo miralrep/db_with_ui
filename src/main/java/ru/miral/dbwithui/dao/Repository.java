@@ -13,7 +13,7 @@ import java.util.Set;
  * todo Document type Repository
  */
 public class Repository {
-    final String URL = "jdbc:postgresql://localhost:5433/miral_db";
+    final String URL = "jdbc:postgresql://localhost:5432/miral_db";
     final String USER = "dbuser";
     final String PASSWORD = "dbpassword";
 
