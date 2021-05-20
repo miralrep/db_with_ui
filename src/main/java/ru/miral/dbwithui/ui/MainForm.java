@@ -24,6 +24,7 @@ public class MainForm extends JFrame {
     private final int MAIN_MENU_HEIGHT = 300;
     private final int ADD_MENU_WIDTH = 400;
     private final int ADD_MENU_HEIGHT = 400;
+    private final int ADD_MENU_TEXT_COLUMNS = 34;
 
     Repository repository;
 
@@ -43,7 +44,7 @@ public class MainForm extends JFrame {
             e.printStackTrace();
         }
 
-        getContentPane().setLayout(new FlowLayout());
+        getContentPane().setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
 
         showMainMenu();
     }
@@ -54,11 +55,11 @@ public class MainForm extends JFrame {
         getContentPane().removeAll();
 
         JButton addSubscriber = new JButton("Добавить абонента");
-        JButton addCategory = new JButton("Добавить тариф");
+        //JButton addCategory = new JButton("Добавить тариф");
         JButton addPhoneNumber = new JButton("Добавить телефон");
         JButton addConversation = new JButton("Добавить звонок");
         add(addConversation);
-        add(addCategory);
+        //add(addCategory);
         add(addPhoneNumber);
         add(addSubscriber);
 
@@ -75,12 +76,12 @@ public class MainForm extends JFrame {
                 showAddConversationMenu();
             }
         });
-        addCategory.addActionListener(new ActionListener() {
+        /*addCategory.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 showAddCategoryMenu();
             }
-        });
+        });*/
         addPhoneNumber.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -110,22 +111,37 @@ public class MainForm extends JFrame {
 
     private void showAddSubscriberMenu() {
         initAddMenu("Добавить абонента");
-        JTextField surnameField = new JTextField(30);
+        JLabel surnameLabel = new JLabel("Фамилия");
+        JTextField surnameField = new JTextField(ADD_MENU_TEXT_COLUMNS);
+        add(surnameLabel);
         add(surnameField);
-        JTextField nameField = new JTextField(30);
+        JLabel nameLabel = new JLabel("Имя");
+        JTextField nameField = new JTextField(ADD_MENU_TEXT_COLUMNS);
+        add(nameLabel);
         add(nameField);
-        JTextField patronymicField = new JTextField(30);
+        JLabel patronymicLabel = new JLabel("Отчество");
+        JTextField patronymicField = new JTextField(ADD_MENU_TEXT_COLUMNS);
+        add(patronymicLabel);
         add(patronymicField);
-        JTextField addressField = new JTextField(30);
+        JLabel addressLabel = new JLabel("Адресс");
+        JTextField addressField = new JTextField(ADD_MENU_TEXT_COLUMNS);
+        add(addressLabel);
         add(addressField);
-        JComboBox<Privilege> privilegesComboBox = new JComboBox<>(Privilege.values());
-        add(privilegesComboBox);
+        JLabel privilegesLabel = new JLabel("Льготы");
+        JList<Privilege> privilegesList = new JList<>(Privilege.values());
+        add(privilegesLabel);
+        add(privilegesList);
 
         JButton submit = new JButton("Добавить");
         submit.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                /*repository.saveSubscriber();*/
+                String surname = surnameField.getText();
+                String name = nameField.getText();
+                String patronymic = surnameField.getText();
+                String address = surnameField.getText();
+                Set<Privilege> privileges = new HashSet<>(privilegesList.getSelectedValuesList());
+                addNewSubscriber(surname, name, patronymic, address, privileges);
             }
         });
         add(submit);
@@ -169,6 +185,8 @@ public class MainForm extends JFrame {
 
     private void addBackButton() {
         JButton backButton = new JButton("Назад");
+        backButton.setSize(380, 30);
+
         backButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -179,6 +197,16 @@ public class MainForm extends JFrame {
     }
 
     private void add(JComponent component) {
+        component.setAlignmentX(Component.CENTER_ALIGNMENT);
         getContentPane().add(component);
+    }
+
+    private void addNewSubscriber(
+        String name, String surname, String patronymic,
+        String address, Set<Privilege> privileges){
+        Subscriber subscriber = new Subscriber(
+            -1, name, surname, patronymic, address, privileges, null
+        );
+        repository.saveSubscriber(subscriber);
     }
 }

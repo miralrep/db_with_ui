@@ -1,3 +1,5 @@
+
+
 --subscriber
 --id|surname|name|patronymic|address|privileges
 CREATE TABLE IF NOT EXISTS subscriber
@@ -26,7 +28,7 @@ CREATE TABLE IF NOT EXISTS subscriber_privilege
     FOREIGN KEY(subscriber_id) REFERENCES subscriber(id),
     FOREIGN KEY(privilege_id) REFERENCES privilege(id),
 
-    UNIQUE(subscriber_id, privilege_id)
+    PRIMARY KEY (subscriber_id, privilege_id)
 
 );
 -------------------------------------------------------------
@@ -35,7 +37,7 @@ CREATE TABLE IF NOT EXISTS subscriber_privilege
 CREATE TABLE IF NOT EXISTS category
 (
     id              SERIAL PRIMARY KEY NOT NULL,
-    name            VARCHAR(100) NOT NULL,
+    name            VARCHAR(100) NOT NULL UNIQUE,
     subscription_fee DECIMAL(7,2) NOT NULL
 );
 -------------------------------------------------------------
@@ -68,7 +70,7 @@ CREATE TABLE IF NOT EXISTS category_call_type_fee
     FOREIGN KEY(category_id) REFERENCES category(id),
     FOREIGN KEY(call_type_id) REFERENCES call_type(id),
 
-    UNIQUE (category_id, call_type_id)
+    PRIMARY KEY (category_id, call_type_id)
 
 );
 --conversation

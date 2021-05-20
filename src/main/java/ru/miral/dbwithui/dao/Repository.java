@@ -4,7 +4,9 @@ import ru.miral.dbwithui.model.entities.*;
 
 import javax.swing.plaf.nimbus.State;
 import java.sql.*;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -21,6 +23,7 @@ public class Repository {
         tryConnection.close();
         initPrivileges();
         initCallTypes();
+        initCategory();
     }
 
     public Set<Subscriber> getAllSubscribers() {
@@ -185,11 +188,7 @@ public class Repository {
         try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD)) {
             try (PreparedStatement preparedStatement = connection
                 .prepareStatement("" +
-                    "SELECT c.id, c.name, c.subscription_fee, " +
-                    "ct.name, cctf.fee FROM category c " +
-                    "JOIN category_call_type_fee cctf ON c.id = cctf.category_id " +
-                    "JOIN call_type ct ON cctf.call_type_id = ct.id " +
-                    "WHERE c.name = ?");
+                    "SELECT id, name, subscription_fee FROM category WHERE name = ?");
 
             ) {
                 preparedStatement.setString(1, name);
@@ -197,17 +196,10 @@ public class Repository {
                     if (categorySet.next()) {
                         Category category = new Category();
                         category.setId(categorySet.getInt("id"));
-                        category.setName(categorySet.getString("c.name"));
+                        category.setName(categorySet.getString("name"));
                         category.setSubscriptionFee(categorySet.getDouble("subscription_fee"));
-                        category.setFeeByCallType(
-                            categorySet.getString("ct.name"),
-                            categorySet.getDouble("fee"));
 
-                        while (categorySet.next()) {
-                            category.setFeeByCallType(
-                                categorySet.getString("ct.name"),
-                                categorySet.getDouble("fee"));
-                        }
+                        category.setFees(getCategoryCallTypeFees(category));
 
                         return category;
                     }
@@ -218,6 +210,26 @@ public class Repository {
         }
 
         return null;
+    }
+
+    public Map<CallType, Double> getCategoryCallTypeFees(Category category) {
+        Map<CallType,Double> categoryCallTypeFees = new HashMap<>();
+        try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
+             PreparedStatement categoryCallTypeFeesStatement = connection.prepareStatement("" +
+                 "SELECT ct.name, cctf.fee FROM category_call_type_fee cctf " +
+                 "JOIN call_type ct on cctf.call_type_id = ct.id " +
+                 "WHERE category_id = ?")) {
+            categoryCallTypeFeesStatement.setInt(1, category.getId());
+            ResultSet resultSet = categoryCallTypeFeesStatement.executeQuery();
+            while (resultSet.next()) {
+                categoryCallTypeFees.put(
+                    CallType.getCallTypeByName(resultSet.getString("name")),
+                    resultSet.getDouble("fee"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return categoryCallTypeFees;
     }
 
     public int getPrivilegeId(Privilege privilege) {
@@ -337,19 +349,50 @@ public class Repository {
     }
 
     private void initCallTypes() {
-        try {
+        try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD); PreparedStatement insertPrivilege = connection
+            .prepareStatement("INSERT INTO call_type(name) VALUES(?) ")) {
 
-            try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
-                 PreparedStatement insertPrivilege = connection
-                     .prepareStatement("INSERT INTO call_type(name) VALUES(?) ");) {
-
-                for (CallType callType : CallType.values()) {
-                    insertPrivilege.setString(1, callType.getName());
-                    insertPrivilege.executeUpdate();
-                }
+            for (CallType callType : CallType.values()) {
+                insertPrivilege.setString(1, callType.getName());
+                insertPrivilege.executeUpdate();
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    private void initCategory() {
+        saveCategory(new Category(
+            0,
+            "Стандартный",
+            0.00d,
+            new HashMap<CallType, Double>() {{
+                put(CallType.LOCAL, 5.00d);
+                put(CallType.INTERCITY, 7.00d);
+                put(CallType.INTERNATIONAL, 30.00d);
+            }}
+        ));
+
+        saveCategory(new Category(
+            0,
+            "Безлимит",
+            500.00d,
+            new HashMap<CallType, Double>() {{
+                put(CallType.LOCAL, 0.00d);
+                put(CallType.INTERCITY, 0.00d);
+                put(CallType.INTERNATIONAL, 30.00d);
+            }}
+        ));
+
+        saveCategory(new Category(
+            0,
+            "Безлимит+",
+            700.00d,
+            new HashMap<CallType, Double>() {{
+                put(CallType.LOCAL, 0.00d);
+                put(CallType.INTERCITY, 0.00d);
+                put(CallType.INTERNATIONAL, 0.00d);
+            }}
+        ));
     }
 }

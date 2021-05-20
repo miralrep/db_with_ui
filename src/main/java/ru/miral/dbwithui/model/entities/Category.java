@@ -13,7 +13,7 @@ public class Category {
 
     public Category(){}
 
-    public Category(int id, String name, int subscriptionFee, Map<CallType, Double> fees) {
+    public Category(int id, String name, double subscriptionFee, Map<CallType, Double> fees) {
         this.id = id;
         this.name = name;
         this.subscriptionFee = subscriptionFee;
