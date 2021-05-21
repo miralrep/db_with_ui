@@ -5,13 +5,13 @@ package ru.miral.dbwithui.model.entities;
  */
 public class PhoneNumber {
     private String number;
-    private Category categoryId; //тариф
+    private Category category; //тариф
 
     public PhoneNumber(){}
 
     public PhoneNumber(String number, Category category) {
         this.number = number;
-        this.categoryId = category;
+        this.category = category;
     }
 
     public String getNumber() {
@@ -23,11 +23,11 @@ public class PhoneNumber {
     }
 
     public Category getCategory() {
-        return categoryId;
+        return category;
     }
 
-    public void setCategory(Category categoryId) {
-        this.categoryId = categoryId;
+    public void setCategory(Category category) {
+        this.category = category;
     }
 
     @Override

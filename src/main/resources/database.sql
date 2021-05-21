@@ -80,12 +80,14 @@ CREATE TABLE IF NOT EXISTS conversation
     id              SERIAL PRIMARY KEY NOT NULL,
     calling_phone   VARCHAR(50) NOT NULL,
     taking_phone    VARCHAR(50) NOT NULL,
-    call_type_id            INT NOT NULL,
-    duration        TIMESTAMP NOT NULL,
-    date            INTERVAL NOT NULL,
+    call_type_id    INT NOT NULL,
+    date            TIMESTAMP NOT NULL,
+    duration        INTERVAL NOT NULL,
 
     FOREIGN KEY(call_type_id) references call_type(id),
     FOREIGN KEY(calling_phone) references phone_number(number),
-    FOREIGN KEY(taking_phone) references phone_number(number)
+    FOREIGN KEY(taking_phone) references phone_number(number),
+
+    UNIQUE(calling_phone, taking_phone, date)
 );
 -------------------------------------------------------------

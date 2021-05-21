@@ -1,9 +1,11 @@
 package ru.miral.dbwithui.dao;
 
+import org.postgresql.util.PGInterval;
 import ru.miral.dbwithui.model.entities.*;
 
-import javax.swing.plaf.nimbus.State;
 import java.sql.*;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -85,12 +87,28 @@ public class Repository {
         return null;
     }
 
+    public Subscriber getSubscriberByPhoneNumber(PhoneNumber number){
+        Subscriber subscriber = new Subscriber();
+        try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD); PreparedStatement preparedStatement = connection.prepareStatement("" +
+            "SELECT subscriber_id FROM phone_number WHERE number = ?")) {
+            preparedStatement.setString(1, number.getNumber());
+            try(ResultSet resultSet = preparedStatement.executeQuery()){
+                if (resultSet.next()){
+                    subscriber = getSubscriberById(resultSet.getInt("subscriber_id"));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return subscriber;
+    }
+
     public Set<PhoneNumber> getSubscribersPhoneNumbersById(int id) {
         Set<PhoneNumber> phoneNumbers = new HashSet<>();
 
         try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD); PreparedStatement preparedStatement = connection
             .prepareStatement("" +
-                "SELECT pn.number, pn.category_id FROM phone_number pn " +
+                "SELECT pn.number AS pnnumber, pn.category_id AS pncategory_id FROM phone_number pn " +
                 "WHERE subscriber_id = ?")) {
             preparedStatement.setInt(1, id);
             try (ResultSet phoneNumberSet = preparedStatement.executeQuery()) {
@@ -98,8 +116,8 @@ public class Repository {
                     while (phoneNumberSet.next()) {
                         PhoneNumber phoneNumber = new PhoneNumber();
                         try {
-                            phoneNumber.setNumber(phoneNumberSet.getString("pn.number"));
-                            phoneNumber.setCategory(getCategoryById(phoneNumberSet.getInt("pn.category_id")));
+                            phoneNumber.setNumber(phoneNumberSet.getString("pnnumber"));
+                            phoneNumber.setCategory(getCategoryById(phoneNumberSet.getInt("pncategory_id")));
                             phoneNumbers.add(phoneNumber);
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -177,6 +195,56 @@ public class Repository {
         return allCategories;
     }
 
+    public Set<PhoneNumber> getAllPhoneNumbers() {
+        Set<PhoneNumber> phoneNumbers = new HashSet<>();
+        try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
+             Statement getAllPhoneNumbersStatement = connection
+                 .createStatement();
+             ResultSet resultSet = getAllPhoneNumbersStatement.executeQuery("" +
+                 "SELECT number, category_id FROM phone_number")) {
+            while (resultSet.next()) {
+                PhoneNumber phoneNumber = new PhoneNumber();
+                phoneNumber.setNumber(resultSet.getString("number"));
+                phoneNumber.setCategory(getCategoryById(resultSet.getInt("category_id")));
+                phoneNumbers.add(phoneNumber);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return phoneNumbers;
+    }
+
+    public Set<Conversation> getPhoneNumberConversationsByMonth(PhoneNumber phoneNumber, LocalDateTime month) {
+        Set<Conversation> conversations = new HashSet<>();
+        try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
+             PreparedStatement phoneNumberConversations = connection
+                 .prepareStatement("" +
+                     "SELECT name, duration " +
+                     "FROM conversation JOIN call_type ct on ct.id = conversation.call_type_id" +
+                     " WHERE calling_phone = ? AND date BETWEEN ? and ?")) {
+            phoneNumberConversations.setString(1, phoneNumber.getNumber());
+            phoneNumberConversations.setObject(2, month);
+            phoneNumberConversations.setObject(3, month.plusMonths(1));
+                try(ResultSet resultSet = phoneNumberConversations.executeQuery()){
+
+                    while (resultSet.next()){
+                        Conversation conversation = new Conversation();
+                        PGInterval pgInterval = (PGInterval)resultSet.getObject("duration");
+                        Duration duration = Duration.ofMinutes(pgInterval.getMinutes());
+                        conversation.setDuration(duration);
+                        conversation.setCallType(CallType.getCallTypeByName(resultSet.getString("name")));
+
+                        conversations.add(conversation);
+                    }
+                } catch (Exception e){
+                    e.printStackTrace();
+                }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return conversations;
+    }
+
     /*public Set<CallType> getAllCallTypes(){
         Set<CallType> allCallTypes = new HashSet<>();
         try(Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
@@ -200,8 +268,8 @@ public class Repository {
         try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD)) {
             try (PreparedStatement preparedStatement = connection
                 .prepareStatement("" +
-                    "SELECT c.id, c.name, c.subscription_fee, " +
-                    "ct.name, cctf.fee FROM category c " +
+                    "SELECT c.id AS id, c.name AS cname, c.subscription_fee AS sub_fee, " +
+                    "ct.name AS ctname, cctf.fee AS fee FROM category c " +
                     "JOIN category_call_type_fee cctf ON c.id = cctf.category_id " +
                     "JOIN call_type ct ON cctf.call_type_id = ct.id " +
                     "WHERE c.id = ?");
@@ -212,15 +280,16 @@ public class Repository {
                     if (categorySet.next()) {
                         Category category = new Category();
                         category.setId(categorySet.getInt("id"));
-                        category.setName(categorySet.getString("c.name"));
-                        category.setSubscriptionFee(categorySet.getDouble("subscription_fee"));
+                        category.setName(categorySet.getString("cname"));
+                        category.setSubscriptionFee(categorySet.getDouble("sub_fee"));
+                        category.setFees(new HashMap<>());
                         category.setFeeByCallType(
-                            categorySet.getString("ct.name"),
+                            categorySet.getString("ctname"),
                             categorySet.getDouble("fee"));
 
                         while (categorySet.next()) {
                             category.setFeeByCallType(
-                                categorySet.getString("ct.name"),
+                                categorySet.getString("ctname"),
                                 categorySet.getDouble("fee"));
                         }
 
@@ -394,10 +463,10 @@ public class Repository {
 
     public void savePhoneNumber(PhoneNumber phoneNumber, Subscriber subscriber) {
         try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);) {
-            try(PreparedStatement savePhoneStatement = connection.prepareStatement("" +
+            try (PreparedStatement savePhoneStatement = connection.prepareStatement("" +
                 "INSERT INTO phone_number(number, subscriber_id, category_id) " +
-                "VALUES (?, ?, ?)")){
-                savePhoneStatement.setString(1,phoneNumber.getNumber());
+                "VALUES (?, ?, ?)")) {
+                savePhoneStatement.setString(1, phoneNumber.getNumber());
                 savePhoneStatement.setInt(2, subscriber.getId());
                 savePhoneStatement.setInt(3, phoneNumber.getCategory().getId());
 
@@ -469,5 +538,29 @@ public class Repository {
                 put(CallType.INTERNATIONAL, 0.00d);
             }}
         ));
+    }
+
+    public void saveConversation(
+        String callingPhone, String takingPhone,
+        CallType callType,
+        LocalDateTime callDateTime, int duration) {
+
+        try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD)) {
+            try (PreparedStatement preparedStatement = connection.prepareStatement("" +
+                "INSERT INTO conversation(calling_phone, taking_phone, call_type_id, duration, date) " +
+                "VALUES (?, ?, ?, ?, ?)")) {
+                preparedStatement.setString(1, callingPhone);
+                preparedStatement.setString(2, takingPhone);
+                preparedStatement.setInt(3, getCallTypeId(callType));
+                PGInterval pgInterval = new PGInterval();
+                pgInterval.setMinutes(duration);
+                preparedStatement.setObject(4, pgInterval);
+                preparedStatement.setObject(5, callDateTime);
+                preparedStatement.executeUpdate();
+            }
+        } catch (
+            SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

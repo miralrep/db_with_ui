@@ -2,18 +2,17 @@ package ru.miral.dbwithui.ui;
 
 import jdk.jshell.spi.ExecutionControl;
 import ru.miral.dbwithui.dao.Repository;
-import ru.miral.dbwithui.model.entities.Category;
-import ru.miral.dbwithui.model.entities.PhoneNumber;
-import ru.miral.dbwithui.model.entities.Privilege;
-import ru.miral.dbwithui.model.entities.Subscriber;
+import ru.miral.dbwithui.model.ReportCalculator;
+import ru.miral.dbwithui.model.entities.*;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
-import java.sql.Array;
 import java.sql.SQLException;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -23,7 +22,7 @@ public class MainForm extends JFrame {
     private final int MAIN_MENU_WIDTH = 250;
     private final int MAIN_MENU_HEIGHT = 300;
     private final int ADD_MENU_WIDTH = 400;
-    private final int ADD_MENU_HEIGHT = 400;
+    private final int ADD_MENU_HEIGHT = 450;
     private final int ADD_MENU_TEXT_COLUMNS = 34;
 
     Repository repository;
@@ -58,17 +57,13 @@ public class MainForm extends JFrame {
         //JButton addCategory = new JButton("Добавить тариф");
         JButton addPhoneNumber = new JButton("Добавить телефон");
         JButton addConversation = new JButton("Добавить звонок");
+        JButton makeReport = new JButton("Составить отчет");
         add(addSubscriber);
         //add(addCategory);
         add(addPhoneNumber);
         add(addConversation);
+        add(makeReport);
 
-        JTextField telephoneField = new JTextField(20);
-        JLabel telephoneLabel = new JLabel("Номер телефона");
-        JButton reportButton = new JButton("Составить отчет");
-        add(telephoneLabel);
-        add(telephoneField);
-        add(reportButton);
 
         addConversation.addActionListener(new ActionListener() {
             @Override
@@ -95,18 +90,50 @@ public class MainForm extends JFrame {
             }
         });
 
-        reportButton.addActionListener(new ActionListener() {
+        makeReport.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                try {
-                    throw new ExecutionControl.NotImplementedException("Создание отчета");
-                } catch (ExecutionControl.NotImplementedException notImplementedException) {
-                    notImplementedException.printStackTrace();
-                }
+                showMakeReportMenu();
             }
         });
 
         getContentPane().repaint();
+    }
+
+    private void showMakeReportMenu(){
+        initAddMenu("Составить отчет");
+        Set<PhoneNumber> phoneNumbers = repository.getAllPhoneNumbers();
+        JLabel phoneNumberLabel = new JLabel("Телефон");
+        JComboBox<PhoneNumber> phoneNumberJComboBox = new JComboBox<>();
+        phoneNumbers.forEach(phoneNumberJComboBox::addItem);
+        JLabel yearLabel = new JLabel("Год");
+        JTextField yearTextField = new JTextField(ADD_MENU_TEXT_COLUMNS);
+        JLabel monthLabel = new JLabel("Месяц");
+        JTextField monthTextField = new JTextField(ADD_MENU_TEXT_COLUMNS);
+
+        add(phoneNumberLabel); add(phoneNumberJComboBox);
+        add(yearLabel); add(yearTextField);
+        add(monthLabel); add(monthTextField);
+
+        JButton submit = new JButton("Составить отчет");
+        add(submit);
+
+        getContentPane().repaint();
+
+        submit.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                PhoneNumber phoneNumber = (PhoneNumber) phoneNumberJComboBox.getSelectedItem();
+                LocalDateTime yearMonth = LocalDateTime.of(Integer.parseInt(yearTextField.getText()),
+                    Integer.parseInt(monthTextField.getText()), 1, 0, 0);
+
+                ReportCalculator reportCalculator = new ReportCalculator();
+                reportCalculator.setRepository(repository);
+
+                JOptionPane.showMessageDialog(getContentPane(),
+                    reportCalculator.getReportText(phoneNumber, yearMonth));
+            }
+        });
     }
 
     private void showAddSubscriberMenu() {
@@ -139,7 +166,7 @@ public class MainForm extends JFrame {
                 String surname = surnameField.getText();
                 String name = nameField.getText();
                 String patronymic = patronymicField.getText();
-                String address = surnameField.getText();
+                String address = addressField.getText();
                 Set<Privilege> privileges = new HashSet<>(privilegesList.getSelectedValuesList());
                 addNewSubscriber(surname, name, patronymic, address, privileges);
             }
@@ -181,16 +208,75 @@ public class MainForm extends JFrame {
         });
     }
 
-    private void showAddCategoryMenu() {
+    /*private void showAddCategoryMenu() {
         initAddMenu("Добавить тариф");
 
         getContentPane().repaint();
-    }
+    }*/
 
     private void showAddConversationMenu() {
         initAddMenu("Добавить звонок");
+        JLabel callingLabel = new JLabel("Звонящий телефон");
+        JComboBox<PhoneNumber> callingJComboBox = new JComboBox<>();
+        repository.getAllPhoneNumbers().forEach(callingJComboBox::addItem);
+        JLabel takingLabel = new JLabel("Принимающий телефон");
+        JComboBox<PhoneNumber> takingJComboBox = new JComboBox<>();
+        repository.getAllPhoneNumbers().forEach(takingJComboBox::addItem);
 
+        JLabel callTypeLabel = new JLabel("Тип звонка");
+        JComboBox<CallType> callTypeJComboBox = new JComboBox<>();
+
+        for (CallType callType : CallType.values()) {
+            callTypeJComboBox.addItem(callType);
+        }
+
+        JLabel yearLabel = new JLabel("Год");
+        JTextField yearText = new JTextField(ADD_MENU_TEXT_COLUMNS);
+        JLabel monthLabel = new JLabel("Месяц(числом)");
+        JTextField monthText = new JTextField(ADD_MENU_TEXT_COLUMNS);
+        JLabel dayLabel = new JLabel("День");
+        JTextField dayText = new JTextField(ADD_MENU_TEXT_COLUMNS);
+        JLabel hourLabel = new JLabel("Час");
+        JTextField hourText = new JTextField(ADD_MENU_TEXT_COLUMNS);
+        JLabel minuteLabel = new JLabel("Минута");
+        JTextField minuteText = new JTextField(ADD_MENU_TEXT_COLUMNS);
+        JLabel durationLabel = new JLabel("Продолжительность(мин.)");
+        JTextField durationText = new JTextField(ADD_MENU_TEXT_COLUMNS);
+
+        add(callingLabel); add(callingJComboBox);
+        add(takingLabel); add(takingJComboBox);
+        add(callTypeLabel); add(callTypeJComboBox);
+        add(yearLabel); add(yearText);
+        add(monthLabel); add(monthText);
+        add(dayLabel); add(dayText);
+        add(hourLabel); add(hourText);
+        add(minuteLabel); add(minuteText);
+        add(durationLabel); add(durationText);
+
+        JButton submit = new JButton("Добавить");
+        add(submit);
         getContentPane().repaint();
+
+        submit.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                LocalDateTime callDateTime = LocalDateTime.of(
+                    Integer.parseInt(yearText.getText()),
+                    Integer.parseInt(monthText.getText()),
+                    Integer.parseInt(dayText.getText()),
+                    Integer.parseInt(hourText.getText()),
+                    Integer.parseInt(minuteText.getText())
+                );
+                int duration = Integer.parseInt(durationText.getText());
+
+                String callingPhone = ((PhoneNumber) Objects.requireNonNull(callingJComboBox.getSelectedItem())).getNumber();
+                String takingPhone = ((PhoneNumber) Objects.requireNonNull(takingJComboBox.getSelectedItem())).getNumber();
+
+                CallType callType = (CallType) callTypeJComboBox.getSelectedItem();
+
+                repository.saveConversation(callingPhone, takingPhone, callType, callDateTime, duration);
+            }
+        });
     }
 
     private void setSizeAndCenter(int width, int height) {
@@ -225,7 +311,7 @@ public class MainForm extends JFrame {
     }
 
     private void addNewSubscriber(
-        String name, String surname, String patronymic,
+        String surname, String name, String patronymic,
         String address, Set<Privilege> privileges){
         Subscriber subscriber = new Subscriber(
             -1, surname, name, patronymic, address, privileges, null
